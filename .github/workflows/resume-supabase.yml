@@ -1,0 +1,27 @@
+name: Supabase Keep-Alive
+
+on:
+  schedule:
+    # Run every 2 days to comfortably reset the 7-day inactivity timer
+    - cron: '0 0 */2 * *'
+  workflow_dispatch: # Allows manual trigger from the Actions tab
+
+jobs:
+  ping-supabase:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase REST API
+        run: |
+          echo "Pinging Supabase to keep the project active..."
+          
+          # Using the project URL and publishable key provided
+          response=$(curl -s -o /dev/null -w "%{http_code}" -X GET "https://ixnzwrhuekyyrqkrvlft.supabase.co/rest/v1/" \
+            -H "apikey: sb_publishable_jYwCVr6PFFFaqpCe_MWF8w_iZgdBRbT" \
+            -H "Authorization: Bearer sb_publishable_jYwCVr6PFFFaqpCe_MWF8w_iZgdBRbT")
+          
+          if [ "$response" == "200" ] || [ "$response" == "201" ]; then
+            echo "✅ Successfully pinged the REST API. Inactivity timer reset!"
+          else
+            echo "⚠️ Unexpected response: HTTP $response. If it's 503, the project might already be paused."
+            # We won't exit 1 so the workflow still succeeds, but logs the result
+          fi
